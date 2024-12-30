@@ -17,8 +17,9 @@
 -- Additional Comments:
 -- 
 ----------------------------------------------------------------------------------
-
-library IEEE;
+-- On déclare tout d’abord la bibliothèque IEEE qui contient
+-- la définition du type std_logic (entre autres).
+library IEEE;s
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity TP07_V1 is
