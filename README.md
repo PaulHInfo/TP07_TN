@@ -17,4 +17,4 @@ Avant de plonger dans ce chef-d'œuvre, assurez-vous d'avoir :
 
 ## Ce que cela m'a appris
 
-Les bases du VHDL et garder mon calme () 
+Les bases du VHDL et garder mon calme 
