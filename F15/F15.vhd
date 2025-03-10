@@ -1,66 +1,69 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity Detecteur_Mains is
+entity Machine_Soufflage is
     Port (
-        D : in  STD_LOGIC;  -- Détecteur de mains
-        CLK : in  STD_LOGIC;  -- Horloge
-        RST : in  STD_LOGIC;  -- Reset
-        A : out STD_LOGIC;   -- Aire
-        C : out STD_LOGIC_VECTOR(3 downto 0);  -- Compteur (4 bits)
-        L : out STD_LOGIC   -- Leds
+        D : in STD_LOGIC; -- Détecteur
+        CLK : in STD_LOGIC; -- Horloge
+        RST : in STD_LOGIC; -- Reset
+        A : out STD_LOGIC; -- Aire
+        C : out STD_LOGIC_VECTOR (3 downto 0); -- Compteur
+        L : out STD_LOGIC; -- Leds
+        L_C : out STD_LOGIC_VECTOR (3 downto 0) -- Leds_compteur
     );
-end Detecteur_Mains;
+end Machine_Soufflage;
 
-architecture Behavioral of Detecteur_Mains is
-    signal count : STD_LOGIC_VECTOR(3 downto 0) := "0000";  -- Compteur interne
-    signal blowing : STD_LOGIC := '0';  -- État de soufflage
-    signal led_on : STD_LOGIC := '0';   -- État des Leds
+architecture Behavioral of Machine_Soufflage is
+    signal counter : INTEGER range 0 to 10 := 0;
+    signal state : INTEGER range 0 to 3 := 0; -- 0: Attente, 1: Détection, 2: Soufflage, 3: Arrêt
 begin
-
-    process(CLK, RST)
+    process (CLK, RST)
     begin
         if RST = '1' then
-            count <= "0000";
-            blowing <= '0';
-            led_on <= '0';
+            counter <= 0;
+            state <= 0;
             A <= '0';
             L <= '0';
             C <= "0000";
+            L_C <= "0000";
         elsif rising_edge(CLK) then
-            if D = '1' then  -- Détection de mains
-                if count < "1010" then  -- Si le compteur est inférieur à 10
-                    count <= count + 1;
-                    blowing <= '1';
-                    led_on <= '1';
-                    A <= '1';
-                    L <= '1';
-                    C <= count;
-                else
-                    if count = "1010" then  -- Si le compteur atteint 10
-                        C <= "0000";  -- Masquer le compteur
-                        blowing <= '1';
-                        led_on <= '1';
-                        A <= '1';
-                        L <= '1';
-                    elsif count = "1011" then  -- Si le compteur atteint 11
-                        blowing <= '0';
-                        led_on <= '0';
-                        A <= '0';
-                        L <= '0';
-                        count <= "0000";  -- Réinitialiser le compteur
+            case state is
+                -- when -> état de ma la machine
+                when 0 => -- Attente de détection
+                    if D = '1' then
+                        state <= 1;
                     end if;
-                end if;
-            else
-                blowing <= '0';
-                led_on <= '0';
-                A <= '0';
-                L <= '0';
-                C <= "0000";
-            end if;
+                
+                when 1 => -- Début soufflage, allume les LEDs et commence le compteur
+                    L <= '1';
+                    A <= '1';
+                    if counter < 10 then
+                        counter <= counter + 1;
+                        C <= CONV_STD_LOGIC_VECTOR(counter, 4);
+                        L_C <= CONV_STD_LOGIC_VECTOR(counter, 4);
+                    else
+                        C <= "0000";
+                        L_C <= "0000";
+                        state <= 2;
+                    end if;
+                
+                when 2 => -- Continue de souffler jusqu'à 10 de plus
+                    if counter < 20 then
+                        counter <= counter + 1;
+                    else
+                        state <= 3;
+                    end if;
+                
+                when 3 => -- Arrêt
+                    L <= '0';
+                    A <= '0';
+                    state <= 0;
+                    counter <= 0;
+            end case;
         end if;
     end process;
-
 end Behavioral;
+--Liste des FCT :
+-- souffle
+-- Affichage LED + Compteur
+-- Detection
